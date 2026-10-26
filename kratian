@@ -6,7 +6,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kratian</title>
+    <title>Kratian Codex</title>
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -29,6 +29,7 @@
         }
         .container { max-width: 1200px; margin: 0 auto; }
         h1 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
             font-size: 3rem;
             margin-bottom: 0.2rem;
             color: #ebdcb2;
@@ -53,15 +54,16 @@
             border-color: var(--accent);
             font-weight: 600;
         }
-        .controls { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filters { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .controls { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
         #searchInput {
             background: #1e1914;
             color: #dcd7ce;
             border: 1px solid var(--border);
-            padding: 0.5rem 1rem;
+            padding: 0.6rem 1rem;
             border-radius: 4px;
-            flex: 1;
             font-family: inherit;
+            font-size: 1rem;
         }
         table {
             width: 100%;
@@ -111,6 +113,7 @@
             margin-top: 1rem;
             font-style: italic;
         }
+        .custom-badge { font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent); padding: 0.1rem 0.4rem; border-radius: 3px; margin-left: 0.5rem; }
     </style>
 </head>
 <body>
@@ -123,13 +126,21 @@
             <button class="filter-btn" onclick="switchTab('grammar', this)">Grammar & Semantics</button>
             <button class="filter-btn" onclick="switchTab('genders', this)">Genders & Pronouns</button>
             <button class="filter-btn" onclick="switchTab('verse', this)">Scripture Verse</button>
-            <button class="filter-btn" onclick="switchTab('notes', this)">Notebook</button>
+            <button class="filter-btn" onclick="switchTab('addword', this)">+ Add Word</button>
         </div>
 
         <!-- TAB 1: LEXICON -->
         <div id="lexicon" class="tab-content active">
             <div class="controls">
                 <input type="text" id="searchInput" placeholder="Search Kratian, English, or category..." onkeyup="filterTable()">
+                <div class="filters" id="filterContainer">
+                    <button class="filter-btn active" onclick="setCategory('All', this)">All</button>
+                    <button class="filter-btn" onclick="setCategory('Core Concept', this)">Core Concepts</button>
+                    <button class="filter-btn" onclick="setCategory('Nature', this)">Nature</button>
+                    <button class="filter-btn" onclick="setCategory('Color', this)">Colors</button>
+                    <button class="filter-btn" onclick="setCategory('Celestial/Temporal', this)">Celestial/Temporal</button>
+                    <button class="filter-btn" onclick="setCategory('Emotion', this)">Abstract/Emotion</button>
+                </div>
             </div>
             <table>
                 <thead>
@@ -145,38 +156,36 @@
             <div class="stats" id="rowCount"></div>
         </div>
 
-       <!-- TAB 2: GRAMMAR -->
-        <div id="grammar" class="tab-content">
+      <div id="grammar" class="tab-content">
             <div class="card-grid">
                 <div class="info-card">
                     <h3>Syntax & Word Order</h3>
                     <ul>
                         <li><strong>SVO:</strong> Subject – Verb – Object.</li>
-                        <li><strong>Simple vs. Composed Subject:</strong> Simple written as-is; composed/modified subjects hyphenated (e.g., <em>Ta’ haskto na-eira</em> vs <em>Ta’ haskto na eira</em>).</li>
                         <li><strong>Interrogation:</strong> <code>ka-</code> prefix + subject + verb.</li>
                         <li><strong>Negative:</strong> <code>ne-</code> prefix before the word.</li>
-                        <li><strong>Comparison:</strong> Prefix <code>'shta</code>.</li>
                     </ul>
                 </div>
                 <div class="info-card">
-                    <h3>Semantics & Tone</h3>
+                    <h3>Semantics (Tone)</h3>
                     <ul>
-                        <li><strong>Harsh sounds:</strong> Raw feelings (grief, anger), war, day-to-day, political contexts.</li>
-                        <li><strong>Soft sounds:</strong> Intimate, soulful, hope, love, sacred/ritualistic (masses, preaching).</li>
+                        <li><strong>Harsh sounds:</strong> Raw feelings (grief, anger), context/ambient (wars, day-to-day, political contexts).</li>
+                        <li><strong>Soft sounds:</strong> Intimate/soulful feelings (hope, love), sacred/ritualistic words (masses, rituals, preaching).</li>
                     </ul>
                 </div>
                 <div class="info-card">
-                    <h3>Adjective Placement</h3>
+                    <h3>Adjectives & Placement</h3>
                     <ul>
-                        <li><strong>Harsh tone:</strong> Subject then adjective (unpolished, e.g., <em>eira na</em>).</li>
-                        <li><strong>Soft tone:</strong> Adjective then subject (poetic/polished, e.g., <em>na eira</em>).</li>
+                        <li><strong>Harsh tone placement:</strong> Subject then adjective (unpolished, e.g., <code>eira na</code> -> heart pure).</li>
+                        <li><strong>Soft tone placement:</strong> Adjective then subject (poetic/polished, e.g., <code>na eira</code> -> pure of heart).</li>
+                        <li><strong>Composed vs. Simple:</strong> Composed/modified subjects are hyphenated (e.g., <code>na-eira</code>) to prevent confusion. Simple subjects write as-is.</li>
                     </ul>
                 </div>
                 <div class="info-card">
                     <h3>Verb Conjugation</h3>
                     <ul>
-                        <li><strong>Present:</strong> No change to the word whatsoever.</li>
-                        <li><strong>Infinitive:</strong> Base + <code>-ar</code>.</li>
+                        <li><strong>Present:</strong> No change to the word.</li>
+                        <li><strong>Infinitive:</strong> Base + <code>-aj</code>.</li>
                         <li><strong>Past:</strong> <code>ha-</code> prefix.</li>
                         <li><strong>Future:</strong> <code>vi-</code> prefix.</li>
                         <li><strong>Conditional:</strong> <code>lo-</code> prefix.</li>
@@ -191,21 +200,31 @@
             <div class="card-grid">
                 <div class="info-card">
                     <h3>Gendered Endings</h3>
-                    <p><strong>Singular:</strong> Masc <code>-y</code> (boy – <em>lumay</em>), Fem <code>-ï</code> (girl – <em>lumaï</em>), Neut <code>-e</code> (child – <em>lumae</em>)</p>
-                    <p><strong>Plural:</strong> Masc <code>-ey</code>, Fem <code>-it</code>, Neut <code>-eni</code></p>
+                    <p><strong>Singular:</strong> Masc <code>-y</code> (lumay), Fem <code>-ï</code> (lumaï), Neut <code>-e</code> (lumae)</p>
+                    <p><strong>Plural:</strong> Masc <code>-ey</code> (lumaey), Fem <code>-it</code> (lumait), Neut <code>-eni</code> (lumaeni)</p>
                 </div>
                 <div class="info-card">
                     <h3>Personal Pronouns</h3>
                     <ul>
-                        <li>I/Me – <em>Aen</em> | You – <em>A’bi</em> | He/she/it – <em>Y’le</em></li>
-                        <li>We – <em>E’tan</em> | You (pl.) – <em>A’bie</em> | They – <em>Y’ma</em></li>
+                        <li><strong>I / Me:</strong> Aen</li>
+                        <li><strong>You:</strong> A’bi</li>
+                        <li><strong>He / She / It:</strong> Y’le</li>
+                        <li><strong>We:</strong> E’tan</li>
+                        <li><strong>You (plural):</strong> A’bie</li>
+                        <li><strong>They:</strong> Y’ma</li>
                     </ul>
                 </div>
                 <div class="info-card">
                     <h3>Possessive Pronouns</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted);">Possession uses possessive pronouns, not suffixes.</p>
                     <ul>
-                        <li>Mine – <em>Aeni</em> | Your – <em>Abi’ri</em> | His/Hers/Its – <em>Yle’ri</em></li>
-                        <li>Our – <em>Etan’ri</em> | Yours (pl.) – <em>Abi’ma</em> | Theirs – <em>Yma’ri</em> | My – <em>Ae</em></li>
+                        <li><strong>Mine:</strong> Aeni</li>
+                        <li><strong>Your:</strong> Abi’ri</li>
+                        <li><strong>His / Hers / Its:</strong> Yle’ri</li>
+                        <li><strong>Our:</strong> Etan’ri</li>
+                        <li><strong>Yours:</strong> Abi’ma</li>
+                        <li><strong>Theirs:</strong> Yma’ri</li>
+                        <li><strong>My:</strong> Ae (neutral rule; translated to "mine" in English structure)</li>
                     </ul>
                 </div>
             </div>
@@ -214,48 +233,44 @@
         <!-- TAB 4: SCRIPTURE VERSE -->
         <div id="verse" class="tab-content">
             <div class="info-card">
-                <h3>In-Universe Bible Verse</h3>
-                <p style="font-style:italic;">"From darkness the first being was born, and to darkness it came back to when, buried in guilt and shame, he became a god of stone in his throne of thorns, an old, forgotten krate."</p>
-                <p style="font-size:0.85rem; color:var(--text-muted);">— First page of the book of Ahn.</p>
-            </div>
-            <div class="verse-box">
-                Nira kaelna ta' lyse ahn<br>
-                hataelyrion, ir kei kaelna<br>
-                y'le tahakoi kei, hakaji esh<br>
-                arkel ir murvel, y'le<br>
-                hatrayse uden su' karn esh<br>
-                y'le'ri 'rek su' akin,<br>
-                maeni'na, harnine Kar'e.<br><br>
-                <strong style="color:var(--text-muted); font-style:normal; font-size:0.85rem;">Isha drenin su’ ta’ Ahn vynar</strong>
+                <h3>First page of the book of Ahn</h3>
+                <div class="verse-box">Nira kaelna ta' lyse ahn
+hataelyrion, ir kei kaelna
+y'le tahakoi kei, hakaji esh
+arkel ir murvel, y'le
+hatrayse uden su' karn esh
+y'le'ri 'rek su' akin,
+maeni'na, harnine Kar'e.
+
+<em>Isha drenin su’ ta’ Ahn vynar</em></div>
+                <p style="margin-top: 1rem; color: var(--text-main);"><strong>English Translation:</strong><br>
+                "From darkness the first being was born, and to darkness it came back to when, buried in guilt and shame, he became a god of stone in his throne of thorns, an old, forgotten krate."</p>
             </div>
         </div>
-
-        <div id="notes" class="tab-content">
-    <div class="info-card">
-        <h3>Add New Lexicon Entry</h3>
-        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
-            <input type="text" id="inputKratian" placeholder="Kratian word" style="flex: 1; min-width: 120px; background: #1e1914; color: #dcd7ce; border: 1px solid #2e263d; padding: 0.5rem; border-radius: 6px;">
-            <input type="text" id="inputEnglish" placeholder="English meaning" style="flex: 1; min-width: 120px; background: #1e1914; color: #dcd7ce; border: 1px solid #2e263d; padding: 0.5rem; border-radius: 6px;">
-            <select id="inputCategory" style="background: #1e1914; color: #dcd7ce; border: 1px solid #2e263d; padding: 0.5rem; border-radius: 6px;">
-                <option value="Core Concept">Core Concept</option>
-                <option value="Nature">Nature</option>
-                <option value="Color">Color</option>
-                <option value="Celestial/Temporal">Celestial/Temporal</option>
-                <option value="Emotion">Emotion</option>
-            </select>
-            <button class="filter-btn" onclick="addWordDirect()">Add Word</button>
+        <!-- TAB 5: ADD WORD FORM -->
+        <div id="addword" class="tab-content">
+            <div class="info-card">
+                <h3>Add New Lexicon Entry</h3>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
+                    <input type="text" id="inputKratian" placeholder="Kratian word" style="flex: 1; min-width: 140px; background: #1e1914; color: #dcd7ce; border: 1px solid #2e263d; padding: 0.5rem; border-radius: 6px; font-family: inherit;">
+                    <input type="text" id="inputEnglish" placeholder="English meaning" style="flex: 1; min-width: 140px; background: #1e1914; color: #dcd7ce; border: 1px solid #2e263d; padding: 0.5rem; border-radius: 6px; font-family: inherit;">
+                    <input type="text" id="inputNotes" placeholder="Notes (optional)" style="flex: 1; min-width: 140px; background: #1e1914; color: #dcd7ce; border: 1px solid #2e263d; padding: 0.5rem; border-radius: 6px; font-family: inherit;">
+                    <select id="inputCategory" style="background: #1e1914; color: #dcd7ce; border: 1px solid #2e263d; padding: 0.5rem; border-radius: 6px; font-family: inherit;">
+                        <option value="Core Concept">Core Concept</option>
+                        <option value="Nature">Nature</option>
+                        <option value="Color">Color</option>
+                        <option value="Celestial/Temporal">Celestial/Temporal</option>
+                        <option value="Emotion">Emotion</option>
+                    </select>
+                    <button class="filter-btn" onclick="addWordDirect()">Save Word</button>
+                </div>
+                <p id="addStatus" style="font-size: 0.85rem; color: var(--accent); margin-top: 0.5rem;"></p>
+            </div>
         </div>
     </div>
-</div>
 
     <script>
-        function switchTab(tabId, btn) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.nav-tabs .filter-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            btn.classList.add('active');
-        }
-
+        let currentCategory = 'All';
         const lexiconData = [
             { kratian: 'lyse', english: 'being', category: 'Core Concept', notes: '' },
             { kratian: 'eth', english: 'born', category: 'Core Concept', notes: '' },
@@ -874,43 +889,97 @@
             { kratian: 'pueri', english: 'prey', category: 'Sorting', notes: '' }
         ];
 
+function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-tabs .filter-btn').forEach(b => b.classList.remove('active'));
+            
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
+            if (btn) btn.classList.add('active');
+
+            if (tabId === 'lexicon') {
+                renderLexicon();
+            }
+        }
+
+        function setCategory(cat, btn) {
+            currentCategory = cat;
+            document.querySelectorAll('#filterContainer .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderLexicon();
+        }
+
+        function filterTable() {
+            renderLexicon();
+        }
+
+        function getFullLexicon() {
+            const custom = JSON.parse(localStorage.getItem('kratian_custom_entries') || '[]');
+            return [...lexiconData, ...custom];
+        }
+
         function renderLexicon() {
             const tbody = document.getElementById('lexiconBody');
-            if (!tbody) return;
-            tbody.innerHTML = lexiconData.map(item => `
+            const searchInput = document.getElementById('searchInput');
+            if (!tbody || !searchInput) return;
+
+            const query = searchInput.value.toLowerCase().trim();
+            const combined = getFullLexicon();
+
+            const filtered = combined.filter(item => {
+                const matchesCat = currentCategory === 'All' || item.category.trim() === currentCategory.trim();
+                const matchesSearch = item.kratian.toLowerCase().includes(query) ||
+                                      item.english.toLowerCase().includes(query) ||
+                                      (item.notes && item.notes.toLowerCase().includes(query));
+                return matchesCat && matchesSearch;
+            });
+
+            tbody.innerHTML = filtered.map(item => `
                 <tr>
-                    <td class="kratian">${item.kratian}</td>
+                    <td class="kratian">${item.kratian} ${item.isCustom ? '<span class="custom-badge">custom</span>' : ''}</td>
                     <td>${item.english}</td>
                     <td>${item.category}</td>
-                    <td>${item.notes}</td>
+                    <td>${item.notes || ''}</td>
                 </tr>
             `).join('');
-            document.getElementById('rowCount').innerText = `Total entries: ${lexiconData.length}`;
+
+            const rowCountEl = document.getElementById('rowCount');
+            if (rowCountEl) {
+                rowCountEl.innerText = `Showing ${filtered.length} of ${combined.length} entries`;
+            }
         }
+
+        function addWordDirect() {
+            const kEl = document.getElementById('inputKratian');
+            const eEl = document.getElementById('inputEnglish');
+            const nEl = document.getElementById('inputNotes');
+            const cEl = document.getElementById('inputCategory');
+            const statusEl = document.getElementById('addStatus');
+            if (!kEl || !eEl || !cEl) return;
+
+            const kratian = kEl.value.trim();
+            const english = eEl.value.trim();
+            const notes = nEl ? nEl.value.trim() : 'Manual entry';
+            const category = cEl.value;
+
+            if (!kratian || !english) {
+                if (statusEl) statusEl.textContent = 'Please fill out at least Kratian word and English meaning.';
+                return;
+            }
+
+            let customEntries = JSON.parse(localStorage.getItem('kratian_custom_entries') || '[]');
+            customEntries.push({ kratian, english, category, notes, isCustom: true });
+            localStorage.setItem('kratian_custom_entries', JSON.stringify(customEntries));
+
+            kEl.value = '';
+            eEl.value = '';
+            if (nEl) nEl.value = '';
+
+            if (statusEl) statusEl.textContent = `Saved "${kratian}" to your local lexicon!`;
+            renderLexicon();
+        }
+
         renderLexicon();
-
-function addWordDirect() {
-    const kEl = document.getElementById('inputKratian');
-    const eEl = document.getElementById('inputEnglish');
-    const cEl = document.getElementById('inputCategory');
-    if (!kEl || !eEl || !cEl) return;
-
-    const kratian = kEl.value.trim();
-    const english = eEl.value.trim();
-    const category = cEl.value;
-
-    if (!kratian || !english) return;
-
-    let customEntries = JSON.parse(localStorage.getItem('kratian_custom_entries') || '[]');
-    customEntries.push({ kratian, english, category, notes: 'Manual entry' });
-    localStorage.setItem('kratian_custom_entries', JSON.stringify(customEntries));
-
-    // Clear inputs
-    kEl.value = '';
-    eEl.value = '';
-
-    renderLexicon();
-}
     </script>
-</body>
+       </body>
 </html>
