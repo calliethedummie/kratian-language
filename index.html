@@ -19,6 +19,8 @@
             --accent-glow: rgba(197, 160, 89, 0.15);
             --border: #2e263d;
         }
+
+
         body {
             font-family: 'Cormorant Garamond', Georgia, serif;
             background-color: var(--bg-color);
@@ -114,6 +116,171 @@
             font-style: italic;
         }
         .custom-badge { font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent); padding: 0.1rem 0.4rem; border-radius: 3px; margin-left: 0.5rem; }
+/* --- BASE STYLES --- */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 1rem; /* Compact padding for small screens */
+            line-height: 1.6;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            width: 100%;
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        h1 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: clamp(2rem, 5vw, 3.5rem); /* Auto-scales fluidly with screen width */
+            margin-bottom: 0.2rem;
+            color: #ebdcb2;
+            letter-spacing: 0.03em;
+            font-weight: 700;
+            text-align: center;
+        }
+        .subtitle { 
+            text-align: center; 
+            color: var(--text-muted); 
+            margin-bottom: 1.5rem; 
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+        }
+
+        /* --- NAVIGATION TABS --- */
+        .nav-tabs { 
+            display: flex; 
+            gap: 0.5rem; 
+            flex-wrap: wrap; 
+            margin-bottom: 1.5rem; 
+            justify-content: center; 
+        }
+        .filter-btn {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--accent);
+            color: #121015;
+            border-color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* --- CONTROLS & FILTERS --- */
+        .controls { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 0.75rem; 
+            margin-bottom: 1rem; 
+        }
+        #searchInput {
+            width: 100%;
+            background: #1e1914;
+            color: #dcd7ce;
+            border: 1px solid var(--border);
+            padding: 0.65rem 1rem;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        .filters { 
+            display: flex; 
+            gap: 0.4rem; 
+            flex-wrap: wrap; 
+        }
+
+        /* --- RESPONSIVE TABLE CONTAINER --- */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto; /* Prevents text overflow on small phones */
+            -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px; /* Ensures columns stay legible on mobile */
+        }
+        th, td {
+            text-align: left;
+            padding: 0.75rem 0.85rem;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: rgba(0,0,0,0.2);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+        tr:last-child td { border-bottom: none; }
+        td.kratian { font-weight: 600; color: #c5a059; }
+
+        /* --- CARDS & GRID --- */
+        .card-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 1.2rem; 
+        }
+        .info-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.2rem;
+        }
+        .info-card h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: #c5a059;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+        ul { padding-left: 1.2rem; margin: 0.5rem 0; }
+        li { margin-bottom: 0.4rem; }
+
+        .verse-box {
+            background: #1e1914;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            padding: 1.2rem;
+            margin-top: 0.75rem;
+            font-style: italic;
+            white-space: pre-line;
+            color: #ebdcb2;
+        }
+        .stats { margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted); text-align: right; }
+        .custom-badge { font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent); padding: 0.1rem 0.4rem; border-radius: 3px; margin-left: 0.5rem; }
+
+        /* --- DESKTOP ENHANCEMENTS (Screens larger than 768px) --- */
+        @media (min-width: 768px) {
+            body {
+                padding: 2.5rem;
+            }
+            .filter-btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 1rem;
+            }
+            th, td {
+                padding: 0.85rem 1rem;
+            }
+        }
+  
     </style>
 </head>
 <body>
@@ -143,6 +310,23 @@
                 </div>
             </div>
             <table>
+<!-- RESPONSIVE WRAPPER ADDED HERE -->
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kratian</th>
+                            <th>English</th>
+                            <th>Category</th>
+                            <th>Notes / Inflection</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lexiconBody"></tbody>
+                </table>
+            </div>
+            
+            <div class="stats" id="rowCount"></div>
+        </div>
                 <thead>
                     <tr>
                         <th>Kratian</th>
