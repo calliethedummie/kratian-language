@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kratian Codex</title>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        :root {
+            --bg-color: #2c201b;
+            --card-bg: #45332b;
+            --text-main: #dcd7ce;
+            --text-muted: #8c8296;
+            --accent: #c5a059;
+            --accent-glow: rgba(197, 160, 89, 0.15);
+            --border: #2e263d;
+        }
+        body {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 3rem;
+            margin-bottom: 0.2rem;
+            color: #ebdcb2;
+            letter-spacing: 0.03em;
+            font-weight: 700;
+            text-align: center;
+        }
+        .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 2rem; }
+        .nav-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; justify-content: center; }
+        .filter-btn {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--accent);
+            color: #121015;
+            border-color: var(--accent);
+            font-weight: 600;
+        }
+        .filters { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .controls { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
+        #searchInput {
+            background: #1e1914;
+            color: #dcd7ce;
+            border: 1px solid var(--border);
+            padding: 0.6rem 1rem;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            text-align: left;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: rgba(0,0,0,0.2);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+        tr:last-child td { border-bottom: none; }
+        td.kratian { font-weight: 600; color: #c5a059; }
+        .stats { margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted); text-align: right; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; }
+        .info-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.2rem;
+        }
+        .info-card h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: #c5a059;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+        ul { padding-left: 1.2rem; margin: 0.5rem 0; }
+        li { margin-bottom: 0.4rem; }
+        .verse-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            font-style: italic;
+        }
+        .custom-badge { font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent); padding: 0.1rem 0.4rem; border-radius: 3px; margin-left: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kratian</h1>
+        <p class="subtitle">Conlang Lexicon, Grammar, Genders & Scripture Archive</p>
+        
+        <div class="nav-tabs">
+            <button class="filter-btn active" onclick="switchTab('lexicon', this)">Lexicon</button>
+            <button class="filter-btn" onclick="switchTab('grammar', this)">Grammar & Semantics</button>
+            <button class="filter-btn" onclick="switchTab('genders', this)">Genders & Pronouns</button>
+            <button class="filter-btn" onclick="switchTab('verse', this)">Scripture Verse</button>
+            <button class="filter-btn" onclick="switchTab('addword', this)">+ Add Word</button>
+        </div>
+
+        <!-- TAB 1: LEXICON -->
+        <div id="lexicon" class="tab-content active">
+            <div class="controls">
+                <input type="text" id="searchInput" placeholder="Search Kratian, English, or category..." onkeyup="filterTable()">
+                <div class="filters" id="filterContainer">
+                    <button class="filter-btn active" onclick="setCategory('All', this)">All</button>
+                    <button class="filter-btn" onclick="setCategory('Core Concept', this)">Core Concepts</button>
+                    <button class="filter-btn" onclick="setCategory('Nature', this)">Nature</button>
+                    <button class="filter-btn" onclick="setCategory('Color', this)">Colors</button>
+                    <button class="filter-btn" onclick="setCategory('Celestial/Temporal', this)">Celestial/Temporal</button>
+                    <button class="filter-btn" onclick="setCategory('Emotion', this)">Abstract/Emotion</button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kratian</th>
+                        <th>English</th>
+                        <th>Category</th>
+                        <th>Notes / Inflection</th>
+                    </tr>
+                </thead>
+                <tbody id="lexiconBody"></tbody>
+            </table>
+            <div class="stats" id="rowCount"></div>
+        </div>
+
+      <div id="grammar" class="tab-content">
+            <div class="card-grid">
+                <div class="info-card">
+                    <h3>Syntax & Word Order</h3>
+                    <ul>
+                        <li><strong>SVO:</strong> Subject – Verb – Object.</li>
+                        <li><strong>Interrogation:</strong> <code>ka-</code> prefix + subject + verb.</li>
+                        <li><strong>Negative:</strong> <code>ne-</code> prefix before the word.</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>Semantics (Tone)</h3>
+                    <ul>
+                        <li><strong>Harsh sounds:</strong> Raw feelings (grief, anger), context/ambient (wars, day-to-day, political contexts).</li>
+                        <li><strong>Soft sounds:</strong> Intimate/soulful feelings (hope, love), sacred/ritualistic words (masses, rituals, preaching).</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>Adjectives & Placement</h3>
+                    <ul>
+                        <li><strong>Harsh tone placement:</strong> Subject then adjective (unpolished, e.g., <code>eira na</code> -> heart pure).</li>
+                        <li><strong>Soft tone placement:</strong> Adjective then subject (poetic/polished, e.g., <code>na eira</code> -> pure of heart).</li>
+                        <li><strong>Composed vs. Simple:</strong> Composed/modified subjects are hyphenated (e.g., <code>na-eira</code>) to prevent confusion. Simple subjects write as-is.</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>Verb Conjugation</h3>
+                    <ul>
+                        <li><strong>Present:</strong> No change to the word.</li>
+                        <li><strong>Infinitive:</strong> Base + <code>-aj</code>.</li>
+                        <li><strong>Past:</strong> <code>ha-</code> prefix.</li>
+                        <li><strong>Future:</strong> <code>vi-</code> prefix.</li>
+                        <li><strong>Conditional:</strong> <code>lo-</code> prefix.</li>
+                        <li><strong>Imperative:</strong> Drop subject.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: GENDERS & PRONOUNS -->
+        <div id="genders" class="tab-content">
+            <div class="card-grid">
+                <div class="info-card">
+                    <h3>Gendered Endings</h3>
+                    <p><strong>Singular:</strong> Masc <code>-y</code> (lumay), Fem <code>-ï</code> (lumaï), Neut <code>-e</code> (lumae)</p>
+                    <p><strong>Plural:</strong> Masc <code>-ey</code> (lumaey), Fem <code>-it</code> (lumait), Neut <code>-eni</code> (lumaeni)</p>
+                </div>
+                <div class="info-card">
+                    <h3>Personal Pronouns</h3>
+                    <ul>
+                        <li><strong>I / Me:</strong> Aen</li>
+                        <li><strong>You:</strong> A’bi</li>
+                        <li><strong>He / She / It:</strong> Y’le</li>
+                        <li><strong>We:</strong> E’tan</li>
+                        <li><strong>You (plural):</strong> A’bie</li>
+                        <li><strong>They:</strong> Y’ma</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>Possessive Pronouns</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted);">Possession uses possessive pronouns, not suffixes.</p>
+                    <ul>
+                        <li><strong>Mine:</strong> Aeni</li>
+                        <li><strong>Your:</strong> Abi’ri</li>
+                        <li><strong>His / Hers / Its:</strong> Yle’ri</li>
+                        <li><strong>Our:</strong> Etan’ri</li>
+                        <li><strong>Yours:</strong> Abi’ma</li>
+                        <li><strong>Theirs:</strong> Yma’ri</li>
+                        <li><strong>My:</strong> Ae (neutral rule; translated to "mine" in English structure)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: SCRIPTURE VERSE -->
+        <div id="verse" class="tab-content">
+            <div class="info-card">
+                <h3>First page of the book of Ahn</h3>
+                <div class="verse-box">Nira kaelna ta' lyse ahn
+hataelyrion, ir kei kaelna
+y'le tahakoi kei, hakaji esh
+arkel ir murvel, y'le
+hatrayse uden su' karn esh
+y'le'ri 'rek su' akin,
+maeni'na, harnine Kar'e.
+
+<em>Isha drenin su’ ta’ Ahn vynar</em></div>
+                <p style="margin-top: 1rem; color: var(--text-main);"><strong>English Translation:</strong><br>
+                "From darkness the first being was born, and to darkness it came back to when, buried in guilt and shame, he became a god of stone in his throne of thorns, an old, forgotten krate."</p>
+            </div>
+        </div>
+        <!-- TAB 5: ADD WORD FORM -->
+        <div id="addword" class="tab-content">
+            <div class="info-card">
+                <h3>Add New Lexicon Entry</h3>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
+                    <input type="text" id="inputKratian" placeholder="Kratian word" style="flex: 1; min-width: 140px; background: #1e1914; color: #dcd7ce; border: 1px solid #2e263d; padding: 0.5rem; border-radius: 6px; font-family: inherit;">
+                    <input type="text" id="inputEnglish" placeholder="English meaning" style="flex: 1; min-width: 140px; background: #1e1914; color: #dcd7ce; border: 1px solid #2e263d; padding: 0.5rem; border-radius: 6px; font-family: inherit;">
+                    <input type="text" id="inputNotes" placeholder="Notes (optional)" style="flex: 1; min-width: 140px; background: #1e1914; color: #dcd7ce; border: 1px solid #2e263d; padding: 0.5rem; border-radius: 6px; font-family: inherit;">
+                    <select id="inputCategory" style="background: #1e1914; color: #dcd7ce; border: 1px solid #2e263d; padding: 0.5rem; border-radius: 6px; font-family: inherit;">
+                        <option value="Core Concept">Core Concept</option>
+                        <option value="Nature">Nature</option>
+                        <option value="Color">Color</option>
+                        <option value="Celestial/Temporal">Celestial/Temporal</option>
+                        <option value="Emotion">Emotion</option>
+                    </select>
+                    <button class="filter-btn" onclick="addWordDirect()">Save Word</button>
+                </div>
+                <p id="addStatus" style="font-size: 0.85rem; color: var(--accent); margin-top: 0.5rem;"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentCategory = 'All';
+        const lexiconData = [
+            { kratian: 'lyse', english: 'being', category: 'Core Concept', notes: '' },
+            { kratian: 'eth', english: 'born', category: 'Core Concept', notes: '' },
+            { kratian: 'uden', english: 'god', category: 'Core Concept', notes: 'Plural: guden' },
+            { kratian: 'guden', english: 'gods', category: 'Core Concept', notes: 'Plural of uden' },
+            { kratian: 'sute', english: 'soul', category: 'Core Concept', notes: '' },
+            { kratian: 'rumik', english: 'prayer', category: 'Core Concept', notes: '' },
+            { kratian: 'rumike', english: 'praying', category: 'Core Concept', notes: '' },
+            { kratian: 'harumik', english: 'prayed', category: 'Core Concept', notes: '' },
+            { kratian: 'veskto / skto / ve’skto', english: 'to bless (incl. vocative)', category: 'Core Concept', notes: 'sktonie - blessed object/person' },
+            { kratian: 'yuveth', english: 'to curse (formal)', category: 'Core Concept', notes: '' },
+            { kratian: 'hekaj', english: 'to curse (general)', category: 'Core Concept', notes: 'hekajie - cursed object/person' },
+            { kratian: 'ah’vi', english: 'to you (divine object)', category: 'Core Concept', notes: '' },
+            { kratian: 'shkazat', english: 'sin', category: 'Core Concept', notes: '' },
+            { kratian: 'droth', english: 'impure / sinners', category: 'Core Concept', notes: '' },
+            { kratian: 'het’rak', english: 'cleanse (bodily)', category: 'Core Concept', notes: '' },
+            { kratian: 'draelkar', english: 'divine word/law', category: 'Core Concept', notes: '' },
+            { kratian: 'taelyrion', english: 'creation (sacred act)', category: 'Core Concept', notes: '' },
+            { kratian: 'surnekh', english: 'chaos / primordial void', category: 'Core Concept', notes: '' },
+            { kratian: 'iskariel', english: 'sacred flame / divine spark', category: 'Core Concept', notes: '' },
+            { kratian: 'eshvyn', english: 'spirit in its divine essence', category: 'Core Concept', notes: '' },
+            { kratian: 'yurenai', english: 'oracle / seer', category: 'Core Concept', notes: '' },
+            { kratian: 'halvyn', english: 'heaven', category: 'Core Concept', notes: '' },
+            { kratian: 'Thradur', english: 'hell', category: 'Core Concept', notes: '' },
+            { kratian: 'zalen / mishre', english: 'spirit', category: 'Core Concept', notes: '' },
+            { kratian: 'orath', english: 'destiny/fate', category: 'Core Concept', notes: '' },
+            { kratian: 'Kar’e', english: 'krate', category: 'Core Concept', notes: '' },
+            { kratian: 'Nishta', english: 'flower crown in women’s wombs when pregnant by the gods', category: 'Core Concept', notes: '' },
+            { kratian: 'Aeshta', english: 'flower crown on the foreheads of the children of the gods', category: 'Core Concept', notes: '' },
+            { kratian: 'Aegon', english: 'the All-Father', category: 'Core Concept', notes: '' },
+            { kratian: 'Vayek’Zul', english: 'the star that betrayed', category: 'Core Concept', notes: '' },
+            { kratian: 'I’vira', english: 'vessel', category: 'Core Concept', notes: '' },
+            { kratian: 'She’sat', english: 'sacred', category: 'Core Concept', notes: '' },
+
+            // Nature & Elements
+            { kratian: 'kaela', english: 'light', category: 'Nature', notes: '' },
+            { kratian: 'kaelna', english: 'darkness', category: 'Nature', notes: '' },
+            { kratian: 'vyn', english: 'death', category: 'Nature', notes: '' },
+            { kratian: 'kaal', english: 'life', category: 'Nature', notes: '' },
+            { kratian: 'sikh', english: 'blood', category: 'Nature', notes: '' },
+            { kratian: 'ravna', english: 'tree', category: 'Nature', notes: '' },
+            { kratian: 'drak / karn', english: 'stone / rock', category: 'Nature', notes: '' },
+            { kratian: 'zeyr', english: 'fire', category: 'Nature', notes: '' },
+            { kratian: 'elu', english: 'water', category: 'Nature', notes: '' },
+            { kratian: 'wahn / guen', english: 'wind', category: 'Nature', notes: '' },
+            { kratian: 'hal’yi / ealyi', english: 'rain', category: 'Nature', notes: '' },
+            { kratian: 'sit’na', english: 'sun', category: 'Nature', notes: '' },
+            { kratian: 'thok', english: 'ground', category: 'Nature', notes: '' },
+            { kratian: 'fes’kar / tural', english: 'soil', category: 'Nature', notes: '' },
+            { kratian: 'live', english: 'seeds', category: 'Nature', notes: '' },
+            { kratian: 'grotha', english: 'grow', category: 'Nature', notes: '' },
+            { kratian: 'ga’khrin', english: 'those', category: 'Nature', notes: '' },
+            { kratian: 'y’men', english: 'pure', category: 'Nature', notes: '' },
+            { kratian: 'na eira / eira na', english: 'of heart', category: 'Nature', notes: '' },
+            { kratian: 'hiyad', english: 'lives', category: 'Nature', notes: '' },
+            { kratian: 'mokaz', english: 'make', category: 'Nature', notes: '' },
+            { kratian: 'tael’rek', english: 'kingdom(s)', category: 'Nature', notes: '' },
+            { kratian: 'valum', english: 'flourish / prosper', category: 'Nature', notes: '' },
+            { kratian: 'kreth', english: 'flesh', category: 'Nature', notes: '' },
+            { kratian: 'osk', english: 'bone', category: 'Nature', notes: '' },
+            { kratian: 'mavre', english: 'hand', category: 'Nature', notes: '' },
+            { kratian: 'sira', english: 'eye', category: 'Nature', notes: '' },
+            { kratian: 'keshean', english: 'head', category: 'Nature', notes: '' },
+            { kratian: 'kedan', english: 'foot', category: 'Nature', notes: '' },
+            { kratian: 'vitrel', english: 'plants', category: 'Nature', notes: '' },
+            { kratian: 'falyev', english: 'flower', category: 'Nature', notes: '' },
+            { kratian: 'feyran', english: 'bird', category: 'Nature', notes: '' },
+            { kratian: 'drauk', english: 'wolf', category: 'Nature', notes: '' },
+            { kratian: 'belvyr', english: 'fish', category: 'Nature', notes: '' },
+            { kratian: 'xalven', english: 'deer', category: 'Nature', notes: '' },
+            { kratian: 'Thorn', english: 'akin', category: 'Nature', notes: '' },
+            { kratian: 'Kaelaen', english: 'of light', category: 'Nature', notes: '' },
+            { kratian: 'Ek’tor', english: 'brighter (than)', category: 'Nature', notes: '' },
+            { kratian: 'Valen', english: 'body', category: 'Nature', notes: '' },
+            { kratian: 'Naemel', english: 'dust', category: 'Nature', notes: '' },
+            { kratian: 'Aeth', english: 'breath', category: 'Nature', notes: '' },
+
+            // Colors
+            { kratian: 'Soxoi / soxoi', english: 'green', category: 'Color', notes: '' },
+            { kratian: 'Oxios', english: 'verdant', category: 'Color', notes: '' },
+            { kratian: 'Alao', english: 'white', category: 'Color', notes: '' },
+            { kratian: 'Aenia', english: 'blue', category: 'Color', notes: '' },
+            { kratian: 'Gomu', english: 'red', category: 'Color', notes: '' },
+            { kratian: 'Uxe', english: 'black', category: 'Color', notes: '' },
+            { kratian: 'Yiibe', english: 'pink', category: 'Color', notes: '' },
+            { kratian: 'Gano', english: 'brown', category: 'Color', notes: '' },
+            { kratian: 'Saian', english: 'orange', category: 'Color', notes: '' },
+            { kratian: 'Moux', english: 'yellow', category: 'Color', notes: '' },
+            { kratian: 'Naan', english: 'purple', category: 'Color', notes: '' },
+            { kratian: 'Alxe', english: 'grey', category: 'Color', notes: '' },
+            { kratian: 'Auron', english: 'gold', category: 'Color', notes: '' },
+
+            // Celestial & Temporal
+            { kratian: 'vurein', english: 'sky', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'selae', english: 'moon', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'eska', english: 'star', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'dravon', english: 'mountain', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'mirath', english: 'forest', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'ulen', english: 'river', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'marai', english: 'ocean / sea', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'nahlae', english: 'cloud', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'ruthak', english: 'thunder', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'krelna', english: 'snow', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'dravak / wahlyi', english: 'storm', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'isven', english: 'frost', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'maren', english: 'tide', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'iskria', english: 'flame (poetic)', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'kaerel', english: 'day', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'nahkael', english: 'night', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'thaeven', english: 'dawn', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'murnel', english: 'dusk', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'kelun', english: 'hour', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'zerai', english: 'moment', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'nela', english: 'today', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'nite', english: 'tomorrow', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'shan', english: 'yesterday', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'shandrik', english: 'the day before last', category: 'Celestial/Temporal', notes: 'Temporal marker [cite: User Correction Ledger]' },
+            { kratian: 'torvek', english: 'year', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'veshal', english: 'season', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'veranya', english: 'spring', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'shaedor', english: 'summer', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'morvain', english: 'autumn', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'graval', english: 'winter', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'iskaram', english: 'comet', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'kaelrith', english: 'eclipse', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'esvalir', english: 'galaxy', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'thurein', english: 'planet', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'mirvalae', english: 'aurora', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'Nitadrik', english: 'the day after tomorrow', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'Estak', english: 'month/months', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'Durakai', english: 'age/era', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'Daimen', english: 'eternally', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'Eknar', english: 'still', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'Huvion', english: 'world', category: 'Celestial/Temporal', notes: '' },
+            { kratian: 'Pak ‘nk', english: 'no longer', category: 'Celestial/Temporal', notes: '' },
+
+            // Abstract / Emotional
+            { kratian: 'viala', english: 'joy', category: 'Emotion', notes: '' },
+            { kratian: 'durven', english: 'grief', category: 'Emotion', notes: '' },
+            { kratian: 'rakoth / tharek', english: 'anger', category: 'Emotion', notes: '' },
+            { kratian: 'seval / silar', english: 'peace', category: 'Emotion', notes: '' },
+            { kratian: 'vaelun', english: 'courage', category: 'Emotion', notes: '' },
+            { kratian: 'lirath', english: 'calm', category: 'Emotion', notes: '' },
+            { kratian: 'nekar / duhnal', english: 'fear', category: 'Emotion', notes: '' },
+            { kratian: 'nuvren', english: 'despair', category: 'Emotion', notes: '' },
+            { kratian: 'esaya', english: 'hope', category: 'Emotion', notes: '' },
+            { kratian: 'orath', english: 'destiny / fate', category: 'Emotion', notes: '' },
+            { kratian: 'ysil', english: 'magic (power)', category: 'Emotion', notes: '' },
+            { kratian: 'suvan', english: 'truth', category: 'Emotion', notes: '' },
+            { kratian: 'velan', english: 'dream', category: 'Emotion', notes: '' },
+            { kratian: 'mnesan', english: 'memory', category: 'Emotion', notes: '' },
+            { kratian: 'luthan', english: 'defeat', category: 'Emotion', notes: '' },
+            { kratian: 'velkar', english: 'victory', category: 'Emotion', notes: '' },
+            { kratian: 'elzai', english: 'pride', category: 'Emotion', notes: '' },
+            { kratian: 'murvel', english: 'shame', category: 'Emotion', notes: '' },
+            { kratian: 'krazekh', english: 'war', category: 'Emotion', notes: '' },
+            { kratian: 'aluryn', english: 'dream', category: 'Emotion', notes: '' },
+            { kratian: 'aluraeth', english: 'beautiful allure', category: 'Emotion', notes: '' },
+            { kratian: 'aluzai', english: 'romantic allure', category: 'Emotion', notes: '' },
+            { kratian: 'alurvek', english: 'harsh allure', category: 'Emotion', notes: '' },
+            { kratian: 'halven', english: 'serenity / patient (adj.) / choice', category: 'Emotion', notes: '' },
+            { kratian: 'xuek', english: 'envy', category: 'Emotion', notes: '' },
+            { kratian: 'vyrhan', english: 'regret', category: 'Emotion', notes: '' },
+            { kratian: 'sirek', english: 'wonder', category: 'Emotion', notes: '' },
+            { kratian: 'marxay', english: 'doubt', category: 'Emotion', notes: '' },
+            { kratian: 'karvornak', english: 'nightmare', category: 'Emotion', notes: '' },
+            { kratian: 'valureth', english: 'future', category: 'Emotion', notes: '' },
+            { kratian: 'thalum', english: 'past', category: 'Emotion', notes: '' },
+            { kratian: 'esxael', english: 'present', category: 'Emotion', notes: '' },
+            { kratian: 'dairuyai', english: 'eternity', category: 'Emotion', notes: '' },
+            { kratian: 'nozraeth', english: 'balance', category: 'Emotion', notes: '' },
+            { kratian: 'Arkel', english: 'guilt', category: 'Emotion', notes: '' },
+            { kratian: 'Maeni', english: 'young', category: 'Emotion', notes: '' },
+            { kratian: 'Maeni’na', english: 'old', category: 'Emotion', notes: '' },
+            { kratian: 'Galen', english: 'strength', category: 'Emotion', notes: '' },
+            { kratian: 'Dreval', english: 'weakness', category: 'Emotion', notes: '' },
+            { kratian: 'Yir', english: 'cold', category: 'Emotion', notes: '' },
+            { kratian: 'Zar', english: 'fade', category: 'Emotion', notes: '' },
+            { kratian: 'Shunel', english: 'justice', category: 'Emotion', notes: '' },
+            { kratian: 'Pak', english: 'no', category: 'Emotion', notes: '' },
+            { kratian: 'Ne', english: 'not', category: 'Emotion', notes: '' },
+            { kratian: 'Eri', english: 'yes', category: 'Emotion', notes: '' },
+            { kratian: 'Nypu', english: 'maybe', category: 'Emotion', notes: '' },
+            { kratian: 'Shu’eni', english: 'judgement', category: 'Emotion', notes: '' },
+            { kratian: 'Xiam', english: 'home', category: 'Emotion', notes: '' },
+            { kratian: 'Xaen', english: 'name', category: 'Emotion', notes: '' },
+            { kratian: 'Velthara', english: 'rebellion', category: 'Emotion', notes: '' },
+            { kratian: 'Kier', english: 'other', category: 'Emotion', notes: '' },
+            { kratian: 'Kinea', english: 'story', category: 'Emotion', notes: '' },
+            { kratian: 'Elvyren', english: 'hollow', category: 'Emotion', notes: '' },
+
+            // Society, Roles & Professions
+            { kratian: 'taey', english: 'king', category: 'Profession', notes: '' },
+            { kratian: 'taeq', english: 'queen', category: 'Profession', notes: '' },
+            { kratian: 'remae / mireth', english: 'healer', category: 'Profession', notes: '' },
+            { kratian: 'drakan / karnor', english: 'warrior', category: 'Profession', notes: '' },
+            { kratian: 'veskan / seldrak', english: 'merchant', category: 'Profession', notes: '' },
+            { kratian: 'skothar', english: 'priest', category: 'Profession', notes: '' },
+            { kratian: 'tornay', english: 'craftsman', category: 'Profession', notes: '' },
+            { kratian: 'tornaq', english: 'craftswoman', category: 'Profession', notes: '' },
+            { kratian: 'veloren', english: 'artisan', category: 'Profession', notes: '' },
+            { kratian: 'liraeth', english: 'musician / sing', category: 'Profession', notes: '' },
+            { kratian: 'murnen', english: 'common folk', category: 'Profession', notes: '' },
+            { kratian: 'drauvek', english: 'farmer', category: 'Profession', notes: '' },
+            { kratian: 'vornek', english: 'hunter', category: 'Profession', notes: '' },
+            { kratian: 'lumekar', english: 'fisher', category: 'Profession', notes: '' },
+            { kratian: 'sylethar', english: 'herbalist', category: 'Profession', notes: '' },
+            { kratian: 'garnul', english: 'shepherd', category: 'Profession', notes: '' },
+            { kratian: 'threnak', english: 'tracker', category: 'Profession', notes: '' },
+            { kratian: 'melven', english: 'gatherer', category: 'Profession', notes: '' },
+            { kratian: 'zairom', english: 'shaman / spirit guide', category: 'Profession', notes: '' },
+            { kratian: 'etharaen', english: 'druid', category: 'Profession', notes: '' },
+            { kratian: 'karneth', english: 'beastkeeper', category: 'Profession', notes: '' },
+            { kratian: 'lunvak', english: 'tracker', category: 'Profession', notes: '' },
+            { kratian: 'mirvak', english: 'forest guardian', category: 'Profession', notes: '' },
+            { kratian: 'thamirak', english: 'potion maker / alchemist', category: 'Profession', notes: '' },
+            { kratian: 'vurezak', english: 'weather caller', category: 'Profession', notes: '' },
+            { kratian: 'iskraven', english: 'flame keeper', category: 'Profession', notes: '' },
+            { kratian: 'ulnaesh', english: 'river whisperer', category: 'Profession', notes: '' },
+            { kratian: 'selanar', english: 'moonseer / lunar oracle', category: 'Profession', notes: '' },
+            { kratian: 'karneluth', english: 'stone shaper / geomancer', category: 'Profession', notes: '' },
+            { kratian: 'feaelyn', english: 'wind listener', category: 'Profession', notes: '' },
+            { kratian: 'zirvok', english: 'beekeeper / insect tamer', category: 'Profession', notes: '' },
+            { kratian: 'zarnok', english: 'magician', category: 'Profession', notes: '' },
+            { kratian: 'vellan', english: 'summoned', category: 'Profession', notes: '' },
+            { kratian: 'zarven', english: 'council', category: 'Profession', notes: '' },
+            { kratian: 'orkun', english: 'meet', category: 'Profession', notes: '' },
+            { kratian: 'zorven', english: 'verdict', category: 'Profession', notes: '' },
+            { kratian: 'velthur', english: 'commander', category: 'Profession', notes: '' },
+            { kratian: 'murthak', english: 'prow', category: 'Profession', notes: '' },
+
+            // Tools & Objects
+            { kratian: 'tharok', english: 'sword', category: 'Tool', notes: '' },
+            { kratian: 'kreshan', english: 'shield', category: 'Tool', notes: '' },
+            { kratian: 'velar', english: 'bow', category: 'Tool', notes: '' },
+            { kratian: 'drash', english: 'axe', category: 'Tool', notes: '' },
+            { kratian: 'kaelin', english: 'spear', category: 'Tool', notes: '' },
+            { kratian: 'jelvak', english: 'spear (variant)', category: 'Tool', notes: '' },
+            { kratian: 'drokan', english: 'hammer', category: 'Tool', notes: '' },
+            { kratian: 'zirnek', english: 'knife', category: 'Tool', notes: '' },
+            { kratian: 'skarnel', english: 'anvil / armor', category: 'Tool', notes: '' },
+            { kratian: 'leshen', english: 'rope', category: 'Tool', notes: '' },
+            { kratian: 'vareth', english: 'wheel', category: 'Tool', notes: '' },
+            { kratian: 'tarnel', english: 'tool', category: 'Tool', notes: '' },
+            { kratian: 'thirven', english: 'chisel', category: 'Tool', notes: '' },
+            { kratian: 'selrak', english: 'needle', category: 'Tool', notes: '' },
+            { kratian: 'verein', english: 'loom', category: 'Tool', notes: '' },
+            { kratian: 'luven', english: 'paint / ink', category: 'Tool', notes: '' },
+            { kratian: 'lushai', english: 'brush (writing/art)', category: 'Tool', notes: '' },
+            { kratian: 'thovra', english: 'helmet', category: 'Tool', notes: '' },
+            { kratian: 'drakem', english: 'book', category: 'Tool', notes: '' },
+            { kratian: 'vessar', english: 'scroll', category: 'Tool', notes: '' },
+            { kratian: 'libet', english: 'quill', category: 'Tool', notes: '' },
+            { kratian: 'palvor', english: 'bridge', category: 'Tool', notes: '' },
+            { kratian: 'elzhen', english: 'market', category: 'Tool', notes: '' },
+            { kratian: 'drenin', english: 'page', category: 'Tool', notes: '' },
+            { kratian: 'Mirzeten', english: 'cloth/clothing', category: 'Tool', notes: '' },
+
+            // Architecture
+            { kratian: 'talven', english: 'house', category: 'Architecture', notes: '' },
+            { kratian: 'sktovalkar', english: 'temple', category: 'Architecture', notes: '' },
+            { kratian: 'tharnok', english: 'castle', category: 'Architecture', notes: '' },
+            { kratian: 'iskreth', english: 'tower', category: 'Architecture', notes: '' },
+            { kratian: 'kaldren', english: 'plaza', category: 'Architecture', notes: '' },
+            { kratian: 'eshalin', english: 'bridge', category: 'Architecture', notes: '' },
+            { kratian: 'dravharn', english: 'fortress', category: 'Architecture', notes: '' },
+            { kratian: '‘rek', english: 'throne', category: 'Architecture', notes: '' },
+            { kratian: 'Dralen', english: 'village', category: 'Architecture', notes: '' },
+
+            // Ritual & Religion
+            { kratian: 'zuvrak', english: 'ritual', category: 'Ritual', notes: '' },
+            { kratian: 'lanurex', english: 'offer', category: 'Ritual', notes: '' },
+            { kratian: 'ekthaal', english: 'sacrifice', category: 'Ritual', notes: '' },
+            { kratian: 'isayael', english: 'hymn', category: 'Ritual', notes: '' },
+            { kratian: 'darethul', english: 'pilgrimage', category: 'Ritual', notes: 'thulye - pilgrim' },
+            { kratian: 'kavreth', english: 'relic', category: 'Ritual', notes: '' },
+            { kratian: 'eshen', english: 'pray', category: 'Ritual', notes: '' },
+            { kratian: 'Kani', english: 'bury', category: 'Ritual', notes: 'Hakani - buried' },
+            { kratian: 'Eath', english: 'oath', category: 'Ritual', notes: '' },
+            { kratian: 'Kavieth', english: 'relic', category: 'Ritual', notes: '' },
+
+            // Knowledge & Education
+            { kratian: 'olthae', english: 'wisdom', category: 'Knowledge', notes: '' },
+            { kratian: 'mirzai', english: 'spell / incantation', category: 'Knowledge', notes: '' },
+            { kratian: 'zekhal', english: 'magic', category: 'Knowledge', notes: '' },
+            { kratian: 'hekorin', english: 'curse (object / item)', category: 'Knowledge', notes: '' },
+            { kratian: 'thelavir', english: 'prophecy', category: 'Knowledge', notes: '' },
+            { kratian: 'selkar', english: 'lie', category: 'Knowledge', notes: '' },
+            { kratian: 'zireth', english: 'thought', category: 'Knowledge', notes: '' },
+            { kratian: 'drazek', english: 'instinct', category: 'Knowledge', notes: '' },
+            { kratian: 'yexin', english: 'curiosity', category: 'Knowledge', notes: '' },
+            { kratian: 'lernos', english: 'know', category: 'Knowledge', notes: '' },
+            { kratian: 'e’tha', english: 'oneself', category: 'Knowledge', notes: '' },
+            { kratian: 'jornin', english: 'remembers', category: 'Knowledge', notes: '' },
+            { kratian: 'thalen', english: 'school', category: 'Knowledge', notes: '' },
+            { kratian: 'eshar', english: 'language', category: 'Knowledge', notes: '' },
+            { kratian: 'ziral', english: 'writing', category: 'Knowledge', notes: '' },
+            { kratian: 'marvek', english: 'study', category: 'Knowledge', notes: '' },
+            { kratian: 'fyrnek', english: 'medicine', category: 'Knowledge', notes: '' },
+            { kratian: 'threkal', english: 'pain', category: 'Knowledge', notes: '' },
+            { kratian: 'vurak', english: 'disease', category: 'Knowledge', notes: '' },
+            { kratian: 'vynar', english: 'book', category: 'Knowledge', notes: '' },
+            { kratian: 'lirael', english: 'teacher', category: 'Knowledge', notes: '' },
+            { kratian: 'sitez', english: 'student', category: 'Knowledge', notes: '' },
+            { kratian: 'harnin', english: 'forget', category: 'Knowledge', notes: 'Harnine - forgotten' },
+            { kratian: 'Velmien', english: 'knowledge', category: 'Knowledge', notes: '' },
+
+            // Family & Relations
+            { kratian: 'nuraeth', english: 'mother', category: 'Family', notes: '' },
+            { kratian: 'durnak', english: 'father', category: 'Family', notes: '' },
+            { kratian: 'velkay', english: 'brother', category: 'Family', notes: '' },
+            { kratian: 'velkaq', english: 'sister', category: 'Family', notes: '' },
+            { kratian: 'lumae', english: 'child', category: 'Family', notes: '' },
+            { kratian: 'amuryn', english: 'lover', category: 'Family', notes: '' },
+            { kratian: 'zaineth', english: 'marriage / union', category: 'Family', notes: '' },
+            { kratian: 'threnor', english: 'ancestor', category: 'Family', notes: '' },
+            { kratian: 'zomal', english: 'friend', category: 'Family', notes: '' },
+            { kratian: 'eral', english: 'elder', category: 'Family', notes: '' },
+            { kratian: 'Nurea', english: 'Maternal Aunt', category: 'Family', notes: '' },
+            { kratian: 'Nushie', english: 'Maternal Uncle', category: 'Family', notes: '' },
+            { kratian: 'Durea', english: 'Paternal Aunt', category: 'Family', notes: '' },
+            { kratian: 'Dushie', english: 'Paternal Uncle', category: 'Family', notes: '' },
+            { kratian: 'Zolar', english: 'Cousin', category: 'Family', notes: '' },
+
+            // Everyday Life
+            { kratian: 'nureth / xiam', english: 'home', category: 'Everyday', notes: '' },
+            { kratian: 'drumek', english: 'meal / feast', category: 'Everyday', notes: '' },
+            { kratian: 'selkai', english: 'song / chant', category: 'Everyday', notes: '' },
+            { kratian: 'velran', english: 'silver', category: 'Everyday', notes: '' },
+            { kratian: 'dravem', english: 'iron', category: 'Everyday', notes: '' },
+            { kratian: 'lareth', english: 'wood', category: 'Everyday', notes: '' },
+            { kratian: 'vireg', english: 'glass', category: 'Everyday', notes: '' },
+            { kratian: 'maren', english: 'clay', category: 'Everyday', notes: '' },
+            { kratian: 'sme’', english: 'silk', category: 'Everyday', notes: '' },
+            { kratian: 'kar', english: 'kar', category: 'Everyday', notes: '' },
+            { kratian: 'Eldren', english: 'song', category: 'Everyday', notes: '' },
+
+            // Verbs / Actions
+            { kratian: 'vahl', english: 'speak', category: 'Verb', notes: '' },
+            { kratian: 'ekhael / amae', english: 'love', category: 'Verb', notes: '' },
+            { kratian: 'dru’un', english: 'walk', category: 'Verb', notes: '' },
+            { kratian: 'jarn', english: 'find', category: 'Verb', notes: '' },
+            { kratian: 'yveth', english: 'dares', category: 'Verb', notes: '' },
+            { kratian: 'gur / guk', english: 'wept / weep', category: 'Verb', notes: '' },
+            { kratian: 'selkan', english: 'silence', category: 'Verb', notes: '' },
+            { kratian: 'thrava', english: 'burns', category: 'Verb', notes: '' },
+            { kratian: 'melai', english: 'flows', category: 'Verb', notes: '' },
+            { kratian: 'ishrak', english: 'clear', category: 'Verb', notes: '' },
+            { kratian: 'kalena', english: 'stirred', category: 'Verb', notes: '' },
+            { kratian: 'vel’ahen', english: 'aware', category: 'Verb', notes: '' },
+            { kratian: 'kanzeth', english: 'crave', category: 'Verb', notes: '' },
+            { kratian: 'akhzet', english: 'cry', category: 'Verb', notes: '' },
+            { kratian: 'thural', english: 'to build / create', category: 'Verb', notes: '' },
+            { kratian: 'nelgak', english: 'to carve', category: 'Verb', notes: '' },
+            { kratian: 'selvak', english: 'to trade / barter', category: 'Verb', notes: '' },
+            { kratian: 'nareth', english: 'to teach', category: 'Verb', notes: '' },
+            { kratian: 'ismirak', english: 'to heal', category: 'Verb', notes: '' },
+            { kratian: 'varnel', english: 'to wander', category: 'Verb', notes: '' },
+            { kratian: 'skirla', english: 'to write', category: 'Verb', notes: '' },
+            { kratian: 'varun', english: 'to melt', category: 'Verb', notes: '' },
+            { kratian: 'koi', english: 'to go', category: 'Verb', notes: 'Hakoi - went' },
+            { kratian: 'trayse', english: 'become/transform', category: 'Verb', notes: 'Hatrayse - became/transformed' },
+            { kratian: 'zarela', english: 'dance', category: 'Verb', notes: '' },
+            { kratian: 'krazeth', english: 'fight', category: 'Verb', notes: '' },
+            { kratian: 'veloan', english: 'rest', category: 'Verb', notes: '' },
+            { kratian: 'dria', english: 'made of', category: 'Verb', notes: '' },
+            { kratian: 'luthak', english: 'fell', category: 'Verb', notes: '' },
+            { kratian: 'var', english: 'broken', category: 'Verb', notes: '' },
+            { kratian: 'silan', english: 'silence', category: 'Verb', notes: '' },
+            { kratian: 'tharak', english: 'watch', category: 'Verb', notes: '' },
+            { kratian: 'mirea', english: 'to fall', category: 'Verb', notes: '' },
+            { kratian: 'xaera', english: 'to seal', category: 'Verb', notes: '' },
+            { kratian: '-ay', english: 'be (to be var.)', category: 'Verb', notes: 'yar: am, yuer: are, yor: is, yur: was, yer: were' },
+            { kratian: 'velkaren', english: 'to start/begin', category: 'Verb', notes: '' },
+            { kratian: 'ekzael', english: 'to proclaim', category: 'Verb', notes: '' },
+            { kratian: 'thalenir', english: 'to remain', category: 'Verb', notes: '' },
+            { kratian: 'uzrael', english: 'to vanish/disappear', category: 'Verb', notes: '' },
+            { kratian: '‘ik', english: 'do', category: 'Verb', notes: 'Ha’ik - did, ‘ikna - done' },
+            { kratian: 'dukaal', english: 'to live', category: 'Verb', notes: '' },
+            { kratian: 'tharek', english: 'to devour', category: 'Verb', notes: '' },
+            { kratian: 'oï’she', english: 'to flow', category: 'Verb', notes: '' },
+            { kratian: 'varkur', english: 'to rise', category: 'Verb', notes: '' },
+            { kratian: 'naemel / ‘arven', english: 'to mourn', category: 'Verb', notes: '' },
+            { kratian: 'sikhea', english: 'to bleed', category: 'Verb', notes: '' },
+            { kratian: 'savyn', english: 'to die', category: 'Verb', notes: '' },
+            { kratian: 'lak', english: 'to sit', category: 'Verb', notes: 'Halak - sat' },
+            { kratian: 'kal', english: 'to stand', category: 'Verb', notes: 'Hakal - stood' },
+
+            // Numbers
+            { kratian: 'Isha / Ahn', english: 'original/first/genesis/beginning', category: 'Number', notes: '' },
+            { kratian: 'drik', english: 'double/two/second', category: 'Number', notes: '' },
+            { kratian: 'vīa', english: 'three/triple/third', category: 'Number', notes: '' },
+            { kratian: 'ket', english: 'four/fourth', category: 'Number', notes: '' },
+            { kratian: 'zim', english: 'five', category: 'Number', notes: '' },
+            { kratian: 'mōe', english: 'six', category: 'Number', notes: '' },
+            { kratian: 'lith', english: 'seven', category: 'Number', notes: '' },
+            { kratian: 'brin', english: 'eight', category: 'Number', notes: '' },
+            { kratian: 'nuia', english: 'nine', category: 'Number', notes: '' },
+            { kratian: 'surin', english: 'ten', category: 'Number', notes: '' },
+            { kratian: 'drikin', english: '20', category: 'Number', notes: '' },
+            { kratian: 'invīa', english: '30', category: 'Number', notes: '' },
+            { kratian: 'ketin', english: '40', category: 'Number', notes: '' },
+            { kratian: 'zimin', english: '50', category: 'Number', notes: '' },
+            { kratian: 'inmōe', english: '60', category: 'Number', notes: '' },
+            { kratian: 'lithin', english: '70', category: 'Number', notes: '' },
+            { kratian: 'brinin', english: '80', category: 'Number', notes: '' },
+            { kratian: 'nuiain', english: '90', category: 'Number', notes: '' },
+            { kratian: 'sunam', english: '100', category: 'Number', notes: '' },
+            { kratian: 'surien', english: '1000', category: 'Number', notes: '' },
+            { kratian: 'kier', english: 'half', category: 'Number', notes: '' },
+            { kratian: 'surik', english: 'million', category: 'Number', notes: '' },
+
+            // Prepositions / Particles / Positions
+            { kratian: 'vethra', english: 'under', category: 'Preposition', notes: '' },
+            { kratian: 'vian', english: 'through', category: 'Preposition', notes: '' },
+            { kratian: 'dranak', english: 'upon', category: 'Preposition', notes: '' },
+            { kratian: 'zalveth', english: 'alone', category: 'Preposition', notes: '' },
+            { kratian: 'ida', english: 'above', category: 'Preposition', notes: '' },
+            { kratian: 'trihk', english: 'against', category: 'Preposition', notes: '' },
+            { kratian: 'shar', english: 'after/afterwards', category: 'Preposition', notes: '' },
+            { kratian: 'grun', english: 'among/amongst', category: 'Preposition', notes: '' },
+            { kratian: 'ir', english: 'and', category: 'Preposition', notes: '' },
+            { kratian: 'resh', english: 'as', category: 'Preposition', notes: '' },
+            { kratian: 'īsh', english: 'at', category: 'Preposition', notes: '' },
+            { kratian: 'ida’na', english: 'bellow/beneath/under', category: 'Preposition', notes: '' },
+            { kratian: 'rish', english: 'by', category: 'Preposition', notes: '' },
+            { kratian: 'ina', english: 'but', category: 'Preposition', notes: '' },
+            { kratian: 'pele', english: 'during', category: 'Preposition', notes: '' },
+            { kratian: 'mat / mir / mur', english: 'for (female/male/neutral)', category: 'Preposition', notes: '' },
+            { kratian: 'nira', english: 'from', category: 'Preposition', notes: '' },
+            { kratian: 'ru’', english: 'if', category: 'Preposition', notes: '' },
+            { kratian: 'esh', english: 'in', category: 'Preposition', notes: '' },
+            { kratian: 'ekhan', english: 'in front of', category: 'Preposition', notes: '' },
+            { kratian: 'kaler', english: 'in spite/despite', category: 'Preposition', notes: '' },
+            { kratian: 'ko', english: 'into', category: 'Preposition', notes: '' },
+            { kratian: 'she', english: 'may', category: 'Preposition', notes: '' },
+            { kratian: 'lu', english: 'near', category: 'Preposition', notes: '' },
+            { kratian: 'su’', english: 'of', category: 'Preposition', notes: '' },
+            { kratian: 'ush', english: 'on', category: 'Preposition', notes: '' },
+            { kratian: 'kī', english: 'onto', category: 'Preposition', notes: '' },
+            { kratian: 'sek', english: 'over', category: 'Preposition', notes: '' },
+            { kratian: 'ik', english: 'that', category: 'Preposition', notes: '' },
+            { kratian: 'ta’', english: 'the', category: 'Preposition', notes: '' },
+            { kratian: 'kei', english: 'to', category: 'Preposition', notes: '' },
+            { kratian: 'thar', english: 'until', category: 'Preposition', notes: '' },
+            { kratian: 'pa’', english: 'with', category: 'Preposition', notes: '' },
+            { kratian: 'pa’esh', english: 'within', category: 'Preposition', notes: '' },
+            { kratian: 'pa’na', english: 'without', category: 'Preposition', notes: '' },
+
+            // Sorting / Misc Vocabulary
+            { kratian: 'hatie', english: 'came', category: 'Sorting', notes: '' },
+            { kratian: 'tie', english: 'come', category: 'Sorting', notes: '' },
+            { kratian: 'xusyk', english: 'back', category: 'Sorting', notes: '' },
+            { kratian: 'emno', english: 'plan', category: 'Sorting', notes: '' },
+            { kratian: 'wahlyi', english: 'storm', category: 'Sorting', notes: '' },
+            { kratian: 'shun', english: 'change', category: 'Sorting', notes: '' },
+            { kratian: 'thevygne', english: 'everything', category: 'Sorting', notes: '' },
+            { kratian: 'lodea', english: 'tell', category: 'Sorting', notes: '' },
+            { kratian: 'kaeir', english: 'risk', category: 'Sorting', notes: '' },
+            { kratian: 'talyk', english: 'actually', category: 'Sorting', notes: '' },
+            { kratian: 'valkeno', english: 'someone', category: 'Sorting', notes: '' },
+            { kratian: 'olok', english: 'have', category: 'Sorting', notes: '' },
+            { kratian: 'lokay', english: 'has', category: 'Sorting', notes: '' },
+            { kratian: 'ha’olok', english: 'had', category: 'Sorting', notes: '' },
+            { kratian: 'ery', english: 'sure', category: 'Sorting', notes: '' },
+            { kratian: 'shu’', english: 'judge', category: 'Sorting', notes: '' },
+            { kratian: 'toshne', english: 'lost', category: 'Sorting', notes: '' },
+            { kratian: 'menia', english: 'reply', category: 'Sorting', notes: '' },
+            { kratian: 'trikaal', english: 'alive', category: 'Sorting', notes: '' },
+            { kratian: 'hamike', english: 'should', category: 'Sorting', notes: '' },
+            { kratian: 'denalshi', english: 'happened', category: 'Sorting', notes: '' },
+            { kratian: 'vynesh', english: 'stay', category: 'Sorting', notes: '' },
+            { kratian: 'xoery', english: 'away', category: 'Sorting', notes: '' },
+            { kratian: 'eka', english: 'it', category: 'Sorting', notes: '' },
+            { kratian: '‘raek', english: 'safe', category: 'Sorting', notes: '' },
+            { kratian: 'noeth', english: 'way', category: 'Sorting', notes: '' },
+            { kratian: 'mnat', english: 'mean', category: 'Sorting', notes: '' },
+            { kratian: 'egre', english: 'right', category: 'Sorting', notes: '' },
+            { kratian: 'velyr', english: 'know', category: 'Sorting', notes: '' },
+            { kratian: 'gunakael', english: 'tonight', category: 'Sorting', notes: '' },
+            { kratian: 'roena', english: 'never', category: 'Sorting', notes: '' },
+            { kratian: 'nishya', english: 'good', category: 'Sorting', notes: '' },
+            { kratian: '‘yerio', english: 'sign', category: 'Sorting', notes: '' },
+            { kratian: 'tuori', english: 'omen', category: 'Sorting', notes: '' },
+            { kratian: 'sakle', english: 'then', category: 'Sorting', notes: '' },
+            { kratian: 'drien', english: 'ride', category: 'Sorting', notes: '' },
+            { kratian: '‘remu', english: 'before', category: 'Sorting', notes: '' },
+            { kratian: 'kezni', english: 'will', category: 'Sorting', notes: '' },
+            { kratian: 'su’ena', english: 'wait', category: 'Sorting', notes: '' },
+            { kratian: 'onuxe', english: 'trust', category: 'Sorting', notes: '' },
+            { kratian: 'mnotre', english: 'all', category: 'Sorting', notes: '' },
+            { kratian: 're’mo', english: 'more', category: 'Sorting', notes: '' },
+            { kratian: 'telyna', english: 'late', category: 'Sorting', notes: '' },
+            { kratian: 'guler', english: 'again', category: 'Sorting', notes: '' },
+            { kratian: 'dy’ael', english: 'already', category: 'Sorting', notes: '' },
+            { kratian: 'xy’nu', english: 'left', category: 'Sorting', notes: '' },
+            { kratian: 'noeka', english: 'count', category: 'Sorting', notes: '' },
+            { kratian: 'hak', english: 'what', category: 'Sorting', notes: '' },
+            { kratian: 'temnus', english: 'time', category: 'Sorting', notes: '' },
+            { kratian: 'aktia', english: 'traffic', category: 'Sorting', notes: '' },
+            { kratian: 'itrie', english: 'mostly', category: 'Sorting', notes: '' },
+            { kratian: 'sturn', english: 'bit', category: 'Sorting', notes: '' },
+            { kratian: 'akver', english: 'overthinking', category: 'Sorting', notes: '' },
+            { kratian: 'baithe', english: 'about', category: 'Sorting', notes: '' },
+            { kratian: 'ani’ta', english: 'whether', category: 'Sorting', notes: '' },
+            { kratian: 'notie', english: 'here', category: 'Sorting', notes: '' },
+            { kratian: 'drenali', english: 'wander', category: 'Sorting', notes: '' },
+            { kratian: 'sunie', english: 'fading', category: 'Sorting', notes: '' },
+            { kratian: 'tea’', english: 'yet', category: 'Sorting', notes: '' },
+            { kratian: 'luthea', english: 'call', category: 'Sorting', notes: '' },
+            { kratian: 'agure', english: 'courage', category: 'Sorting', notes: '' },
+            { kratian: 'odyte', english: 'duty', category: 'Sorting', notes: '' },
+            { kratian: 'paley', english: 'steps', category: 'Sorting', notes: '' },
+            { kratian: 'tempa', english: 'must', category: 'Sorting', notes: '' },
+            { kratian: 'aek', english: 'path', category: 'Sorting', notes: '' },
+            { kratian: 'pymeriy', english: 'mercy', category: 'Sorting', notes: '' },
+            { kratian: 'oyse', english: 'though', category: 'Sorting', notes: '' },
+            { kratian: 'enop', english: 'none', category: 'Sorting', notes: '' },
+            { kratian: 'vator', english: 'await', category: 'Sorting', notes: '' },
+            { kratian: 'pineth', english: 'nothing', category: 'Sorting', notes: '' },
+            { kratian: 'gezar', english: 'altar', category: 'Sorting', notes: '' },
+            { kratian: 'bekas', english: 'weight', category: 'Sorting', notes: '' },
+            { kratian: 'nima', english: 'down', category: 'Sorting', notes: '' },
+            { kratian: 'vigne', english: 'ever', category: 'Sorting', notes: '' },
+            { kratian: 'supe', english: 'guess', category: 'Sorting', notes: '' },
+            { kratian: 'romse', english: 'swore', category: 'Sorting', notes: '' },
+            { kratian: 'sutke', english: 'protect', category: 'Sorting', notes: '' },
+            { kratian: 'maler', english: 'realm', category: 'Sorting', notes: '' },
+            { kratian: 'nayser', english: 'answer', category: 'Sorting', notes: '' },
+            { kratian: 'akerna', english: 'betray', category: 'Sorting', notes: '' },
+            { kratian: 'vedni', english: 'knight', category: 'Sorting', notes: '' },
+            { kratian: 'xes', english: 'or', category: 'Sorting', notes: '' },
+            { kratian: 'thuren', english: 'ghost', category: 'Sorting', notes: '' },
+            { kratian: '‘eshi', english: 'now', category: 'Sorting', notes: '' },
+            { kratian: 'reshta', english: 'think', category: 'Sorting', notes: '' },
+            { kratian: 'turak', english: 'about', category: 'Sorting', notes: '' },
+            { kratian: 'keshy', english: 'than', category: 'Sorting', notes: '' },
+            { kratian: 'mokni', english: 'sometimes', category: 'Sorting', notes: '' },
+            { kratian: 'rokna', english: 'probably', category: 'Sorting', notes: '' },
+            { kratian: 'lutzo', english: 'calmer', category: 'Sorting', notes: '' },
+            { kratian: 'lynue', english: 'lonely', category: 'Sorting', notes: '' },
+            { kratian: 'biel', english: 'oddly', category: 'Sorting', notes: '' },
+            { kratian: 'teshnu', english: 'sweet', category: 'Sorting', notes: '' },
+            { kratian: 'tumei', english: 'get', category: 'Sorting', notes: '' },
+            { kratian: 'dumish', english: 'used', category: 'Sorting', notes: '' },
+            { kratian: 'talnie', english: 'emotional', category: 'Sorting', notes: '' },
+            { kratian: 'lesat', english: 'lapse', category: 'Sorting', notes: '' },
+            { kratian: 'laksi', english: 'only', category: 'Sorting', notes: '' },
+            { kratian: 'videk', english: 'empty', category: 'Sorting', notes: '' },
+            { kratian: 'kairen', english: 'hey/hi/hello', category: 'Sorting', notes: '' },
+            { kratian: 'vyshna', english: 'lay', category: 'Sorting', notes: '' },
+            { kratian: 'xuvekt', english: 'worth', category: 'Sorting', notes: '' },
+            { kratian: 'leitha', english: 'slightly', category: 'Sorting', notes: '' },
+            { kratian: 'minae', english: 'owe', category: 'Sorting', notes: '' },
+            { kratian: 'sirhe', english: 'good', category: 'Sorting', notes: '' },
+            { kratian: 'miord', english: 'morning', category: 'Sorting', notes: '' },
+            { kratian: 'halvyn’', english: 'heaven’s', category: 'Sorting', notes: '' },
+            { kratian: 'teag', english: 'dove', category: 'Sorting', notes: '' },
+            { kratian: 'xärei', english: 'keep', category: 'Sorting', notes: '' },
+            { kratian: 'leokht', english: 'whole', category: 'Sorting', notes: '' },
+            { kratian: 'tiodinr', english: 'idiot', category: 'Sorting', notes: '' },
+            { kratian: 'nareos', english: 'moron', category: 'Sorting', notes: '' },
+            { kratian: '‘etar', english: 'real', category: 'Sorting', notes: '' },
+            { kratian: 'vomber', english: 'over', category: 'Sorting', notes: '' },
+            { kratian: 'lio’ze', english: 'coffee', category: 'Sorting', notes: '' },
+            { kratian: 'akzar', english: 'kill', category: 'Sorting', notes: '' },
+            { kratian: 'blyne', english: 'gently', category: 'Sorting', notes: '' },
+            { kratian: 'sognie', english: 'forgiveness', category: 'Sorting', notes: '' },
+            { kratian: 'sina', english: 'ask', category: 'Sorting', notes: '' },
+            { kratian: 'Baier', english: 'perhaps', category: 'Sorting', notes: '' },
+            { kratian: 'prani', english: 'this', category: 'Sorting', notes: '' },
+            { kratian: 'lebna', english: 'feel', category: 'Sorting', notes: '' },
+            { kratian: '‘roe', english: 'ever', category: 'Sorting', notes: '' },
+            { kratian: 'poeryk', english: 'suppose', category: 'Sorting', notes: '' },
+            { kratian: 'kaedmy', english: 'made', category: 'Sorting', notes: '' },
+            { kratian: 'daler', english: 'blade', category: 'Sorting', notes: '' },
+            { kratian: 'umith', english: 'hum', category: 'Sorting', notes: '' },
+            { kratian: 'nevshi', english: 'when', category: 'Sorting', notes: '' },
+            { kratian: 'avnek', english: 'draw (a blade)', category: 'Sorting', notes: '' },
+            { kratian: 'mudries', english: 'depends', category: 'Sorting', notes: '' },
+            { kratian: 'timshe', english: 'who', category: 'Sorting', notes: '' },
+            { kratian: 'gukso', english: 'hold', category: 'Sorting', notes: '' },
+            { kratian: 'meari', english: 'neither', category: 'Sorting', notes: '' },
+            { kratian: 'ebsix', english: 'pure', category: 'Sorting', notes: '' },
+            { kratian: 'xunek', english: 'enough', category: 'Sorting', notes: '' },
+            { kratian: 'deksha', english: 'wicked', category: 'Sorting', notes: '' },
+            { kratian: 'panket', english: 'break', category: 'Sorting', notes: '' },
+            { kratian: 'naleth', english: 'balance', category: 'Sorting', notes: '' },
+            { kratian: 'ryoga', english: 'purgatory', category: 'Sorting', notes: '' },
+            { kratian: 'ashte', english: 'nor', category: 'Sorting', notes: '' },
+            { kratian: 'xurena', english: 'beast', category: 'Sorting', notes: '' },
+            { kratian: 'kune', english: 'smart', category: 'Sorting', notes: '' },
+            { kratian: 'neru', english: 'dumb', category: 'Sorting', notes: '' },
+            { kratian: 'kelt', english: 'read', category: 'Sorting', notes: '' },
+            { kratian: 'buerik', english: 'destroy', category: 'Sorting', notes: '' },
+            { kratian: 'poesho', english: 'suppose', category: 'Sorting', notes: '' },
+            { kratian: 'e’tak', english: 'us', category: 'Sorting', notes: '' },
+            { kratian: 'iloety', english: 'insolent', category: 'Sorting', notes: '' },
+            { kratian: 'köegar', english: 'ungrateful', category: 'Sorting', notes: '' },
+            { kratian: 'ulet', english: 'can', category: 'Sorting', notes: '' },
+            { kratian: 'mekäe', english: 'taste', category: 'Sorting', notes: '' },
+            { kratian: 'nea', english: 'so', category: 'Sorting', notes: '' },
+            { kratian: 'shyre', english: 'tight', category: 'Sorting', notes: '' },
+            { kratian: 'shari', english: 'close', category: 'Sorting', notes: '' },
+            { kratian: 'sharin', english: 'closer', category: 'Sorting', notes: '' },
+            { kratian: 'kea', english: 'wrong', category: 'Sorting', notes: '' },
+            { kratian: 'yrguen', english: 'hungry', category: 'Sorting', notes: '' },
+            { kratian: 'yrgus', english: 'hunger', category: 'Sorting', notes: '' },
+            { kratian: 'ilzë', english: 'wound', category: 'Sorting', notes: '' },
+            { kratian: 'hailzë', english: 'wounded', category: 'Sorting', notes: '' },
+            { kratian: 'murvnae', english: 'ashamed', category: 'Sorting', notes: '' },
+            { kratian: 'karishe', english: 'feed', category: 'Sorting', notes: '' },
+            { kratian: 'karish', english: 'food', category: 'Sorting', notes: '' },
+            { kratian: 'zakon', english: 'unmake', category: 'Sorting', notes: '' },
+            { kratian: 'tuevir', english: 'drink', category: 'Sorting', notes: '' },
+            { kratian: 'pueri', english: 'prey', category: 'Sorting', notes: '' }
+        ];
+
+function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-tabs .filter-btn').forEach(b => b.classList.remove('active'));
+            
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
+            if (btn) btn.classList.add('active');
+
+            if (tabId === 'lexicon') {
+                renderLexicon();
+            }
+        }
+
+        function setCategory(cat, btn) {
+            currentCategory = cat;
+            document.querySelectorAll('#filterContainer .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderLexicon();
+        }
+
+        function filterTable() {
+            renderLexicon();
+        }
+
+        function getFullLexicon() {
+            const custom = JSON.parse(localStorage.getItem('kratian_custom_entries') || '[]');
+            return [...lexiconData, ...custom];
+        }
+
+        function renderLexicon() {
+            const tbody = document.getElementById('lexiconBody');
+            const searchInput = document.getElementById('searchInput');
+            if (!tbody || !searchInput) return;
+
+            const query = searchInput.value.toLowerCase().trim();
+            const combined = getFullLexicon();
+
+            const filtered = combined.filter(item => {
+                const matchesCat = currentCategory === 'All' || item.category.trim() === currentCategory.trim();
+                const matchesSearch = item.kratian.toLowerCase().includes(query) ||
+                                      item.english.toLowerCase().includes(query) ||
+                                      (item.notes && item.notes.toLowerCase().includes(query));
+                return matchesCat && matchesSearch;
+            });
+
+            tbody.innerHTML = filtered.map(item => `
+                <tr>
+                    <td class="kratian">${item.kratian} ${item.isCustom ? '<span class="custom-badge">custom</span>' : ''}</td>
+                    <td>${item.english}</td>
+                    <td>${item.category}</td>
+                    <td>${item.notes || ''}</td>
+                </tr>
+            `).join('');
+
+            const rowCountEl = document.getElementById('rowCount');
+            if (rowCountEl) {
+                rowCountEl.innerText = `Showing ${filtered.length} of ${combined.length} entries`;
+            }
+        }
+
+        function addWordDirect() {
+            const kEl = document.getElementById('inputKratian');
+            const eEl = document.getElementById('inputEnglish');
+            const nEl = document.getElementById('inputNotes');
+            const cEl = document.getElementById('inputCategory');
+            const statusEl = document.getElementById('addStatus');
+            if (!kEl || !eEl || !cEl) return;
+
+            const kratian = kEl.value.trim();
+            const english = eEl.value.trim();
+            const notes = nEl ? nEl.value.trim() : 'Manual entry';
+            const category = cEl.value;
+
+            if (!kratian || !english) {
+                if (statusEl) statusEl.textContent = 'Please fill out at least Kratian word and English meaning.';
+                return;
+            }
+
+            let customEntries = JSON.parse(localStorage.getItem('kratian_custom_entries') || '[]');
+            customEntries.push({ kratian, english, category, notes, isCustom: true });
+            localStorage.setItem('kratian_custom_entries', JSON.stringify(customEntries));
+
+            kEl.value = '';
+            eEl.value = '';
+            if (nEl) nEl.value = '';
+
+            if (statusEl) statusEl.textContent = `Saved "${kratian}" to your local lexicon!`;
+            renderLexicon();
+        }
+
+        renderLexicon();
+    </script>
+       </body>
+</html>
